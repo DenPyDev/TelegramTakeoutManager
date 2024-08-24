@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простой Веб-сайт</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: darkblue; }
+        #time { color: green; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Hi!</h1>
+    <p>HTML-page</p>
+    <p id="time"></p>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('time').textContent = 'T: ' + now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
