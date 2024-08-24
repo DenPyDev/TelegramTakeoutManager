@@ -3,23 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Простой Веб-сайт</title>
+    <title>Upload JSON and Display Keys</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1 { color: darkblue; }
-        #time { color: green; font-size: 24px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #output {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Hi!</h1>
-    <p>HTML-page</p>
-    <p id="time"></p>
-    <script>
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('time').textContent = 'T: ' + now.toLocaleTimeString();
+
+<h2>Upload JSON Document</h2>
+<input type="file" id="jsonInput" accept=".json">
+<div id="output"></div>
+
+<script>
+    document.getElementById('jsonInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    displayKeys(json);
+                } catch (error) {
+                    document.getElementById('output').textContent = 'Invalid JSON format';
+                }
+            };
+            reader.readAsText(file);
         }
-        setInterval(updateTime, 1000);
-    </script>
+    });
+
+    function displayKeys(json) {
+        const keys = Object.keys(json);
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = '<h3>JSON Keys:</h3><ul>' + keys.map(key => `<li>${key}</li>`).join('') + '</ul>';
+    }
+</script>
+
 </body>
 </html>
