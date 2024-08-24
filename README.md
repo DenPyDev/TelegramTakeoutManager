@@ -21,7 +21,6 @@ Welcome to the **Telegram JSON Parser**! This tool allows you to easily search, 
      - **Phrase Search**: Enter `happy birthday` to search for the exact phrase without any logical operators.
      - **Combining `OR` and `AND` Operators**: Use `OR` and `AND` together to refine your search. For example, `birthday AND party OR anniversary` will find messages that contain both "birthday" and "party", or messages that contain "anniversary".
      - **Using `NOT` with Other Operators**: Exclude specific terms while combining with other operators. For example, `birthday AND party NOT surprise` will find messages that contain both "birthday" and "party" but do not include the word "surprise".
-     - **Complex Searches**: Combine multiple operators for advanced searches. For example, `birthday AND (party OR dinner) NOT surprise` will find messages containing "birthday" and either "party" or "dinner", but exclude any that contain "surprise".
    - **Case Sensitivity**: Check the **"Case Sensitive"** checkbox if you want your search to differentiate between uppercase and lowercase letters.
    - **Date Range Filters**: Use the **start** and **end date** fields to filter messages by a specific date range. This is useful for finding messages from a certain period.
 
