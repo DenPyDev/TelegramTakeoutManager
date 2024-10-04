@@ -152,11 +152,9 @@
             const formattedDate = message.date ? formatDate(message.date) : 'N/A';
 
             messageDiv.innerHTML =
-                `<strong>Message ${index + 1}</strong> &nbsp;&nbsp;
-                <strong>Type:</strong> ${message.type || 'N/A'} &nbsp;&nbsp;
-                <strong>ID:</strong> ${message.id || 'N/A'} &nbsp;&nbsp;
+                `<strong>ID:</strong> ${message.id || 'N/A'} &nbsp;&nbsp;
                 <strong>Date:</strong> ${formattedDate} &nbsp;&nbsp;
-                <strong>Actor:</strong> ${message.actor || message.from || 'N/A'}<br>
+                <strong>User:</strong> ${message.actor || message.from || 'N/A'}<br>
                 <div style="white-space: pre-wrap; word-wrap: break-word;">${textContent}</div>`;
 
             fragment.appendChild(messageDiv);
