@@ -52,8 +52,8 @@
 <script>
     let messages = [];
     let filteredMessages = [];
-    let batchSize = 1000;  // Количество сообщений в одной партии
-    let currentBatchIndex = 0;  // Текущий индекс партии
+    let batchSize = 5000;
+    let currentBatchIndex = 0;
 
     document.getElementById('jsonInput').addEventListener('change', function (event) {
         const file = event.target.files[0];
@@ -68,7 +68,7 @@
                 .node('messages.*', function (message) {
                     messages.push(message);
                     if (messages.length % batchSize === 0) {
-                        filterMessages();  // Фильтруем и отображаем по партиям
+                        filterMessages();
                     }
                     return oboe.drop;
                 })
@@ -213,7 +213,7 @@
             });
         }
 
-        currentBatchIndex = 0;  // Сбрасываем индекс партии
+        currentBatchIndex = 0;
         displayMessages();
     }
 
