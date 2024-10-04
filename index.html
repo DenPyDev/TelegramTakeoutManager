@@ -79,7 +79,6 @@
     </style>
 </head>
 <body>
-
 <h2>Telegram JSON search</h2>
 <div class="tooltip">
     <input type="file" id="jsonInput" accept=".json">
@@ -108,182 +107,41 @@
 <div id="loadingSpinner">Loading... Please wait.</div>
 <div id="output"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/oboe@2.1.5/dist/oboe-browser.min.js"></script>
 <script>
-    let messages = [];
-    let filteredMessages = [];
-
-    document.getElementById('jsonInput').addEventListener('change', async function (event) {
+    document.getElementById('jsonInput').addEventListener('change', function (event) {
         const file = event.target.files[0];
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const outputDiv = document.getElementById('output');
-
-        if (file) {
-            loadingSpinner.style.display = 'block';
-            outputDiv.innerHTML = '';
-            try {
-                const text = await readFileAsText(file);
-                const json = JSON.parse(text);
-                messages = json.messages || [];
-                filteredMessages = messages;
-
-                if (messages.length > 0) {
-                    setInitialDateFilters();
-                }
-
-                displayMessages();
-            } catch (error) {
-                outputDiv.textContent = 'Invalid JSON format';
-            }
-            loadingSpinner.style.display = 'none';
-        } else {
+        if (!file) {
             alert('Please select a file!');
+            return;
         }
-    });
 
-    function readFileAsText(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsText(file);
-        });
-    }
-
-    function setInitialDateFilters() {
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-
-        const sortedMessages = messages.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const firstDate = sortedMessages[0].date;
-        const lastDate = sortedMessages[sortedMessages.length - 1].date;
-
-        startDateInput.value = formatDateForInput(firstDate);
-        endDateInput.value = formatDateForInput(lastDate);
-    }
-
-    function formatDateForInput(dateString) {
-        const date = new Date(dateString);
-        return date.toISOString().slice(0, 16);
-    }
-
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Invalid Date';
-        return date.toLocaleString();
-    }
-
-    function displayMessages() {
         const outputDiv = document.getElementById('output');
-        const messageCountSpan = document.getElementById('messageCount');
-        const fragment = document.createDocumentFragment();
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        outputDiv.innerHTML = '';
+        loadingSpinner.style.display = 'block';
 
-        filteredMessages.forEach((message, index) => {
+        oboe({
+            url: URL.createObjectURL(file),
+            method: 'GET'
+        }).node('messages.*', function (message) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
-
-            let textContent = '';
-            if (Array.isArray(message.text)) {
-                message.text.forEach(part => {
-                    if (typeof part === 'string') {
-                        textContent += part;
-                    } else if (typeof part === 'object' && part.text) {
-                        textContent += part.text;
-                    }
-                });
-            } else {
-                textContent = message.text || 'N/A';
-            }
-
-            const formattedDate = message.date ? formatDate(message.date) : 'N/A';
-
+            let textContent = message.text || 'N/A';
+            const formattedDate = message.date ? new Date(message.date).toLocaleString() : 'N/A';
             messageDiv.innerHTML =
-                `<strong>Message ${index + 1}</strong> &nbsp;&nbsp;
+                `<strong>Message</strong> &nbsp;&nbsp;
                 <strong>Type:</strong> ${message.type || 'N/A'} &nbsp;&nbsp;
                 <strong>ID:</strong> ${message.id || 'N/A'} &nbsp;&nbsp;
                 <strong>Date:</strong> ${formattedDate} &nbsp;&nbsp;
                 <strong>Actor:</strong> ${message.actor || message.from || 'N/A'}<br>
                 <pre>${textContent}</pre>`;
-
-            fragment.appendChild(messageDiv);
-        });
-
-        outputDiv.innerHTML = '';
-        outputDiv.appendChild(fragment);
-        messageCountSpan.textContent = filteredMessages.length;
-    }
-
-    function filterMessages() {
-        const searchTerm = document.getElementById('searchInput').value.trim();
-        const caseSensitive = document.getElementById('caseSensitiveCheckbox').checked;
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const startDate = new Date(document.getElementById('startDate').value);
-        const endDate = new Date(document.getElementById('endDate').value);
-        loadingSpinner.style.display = 'block';
-
-        setTimeout(() => {
-            if (searchTerm === '') {
-                filteredMessages = messages.filter(message => {
-                    const messageDate = new Date(message.date);
-                    return messageDate >= startDate && messageDate <= endDate;
-                });
-                displayMessages();
-                loadingSpinner.style.display = 'none';
-                return;
-            }
-
-            const orConditions = searchTerm.split('OR').map(orTerm => orTerm.trim());
-            filteredMessages = messages.filter(message => {
-                const messageDate = new Date(message.date);
-                if (messageDate < startDate || messageDate > endDate) {
-                    return false;
-                }
-
-                let textContent = '';
-                if (Array.isArray(message.text)) {
-                    message.text.forEach(part => {
-                        if (typeof part === 'string') {
-                            textContent += part;
-                        } else if (typeof part === 'object' && part.text) {
-                            textContent += part.text;
-                        }
-                    });
-                } else {
-                    textContent = message.text || 'N/A';
-                }
-
-                if (!caseSensitive) {
-                    textContent = textContent.toLowerCase();
-                }
-
-                return orConditions.some(orTerm => {
-                    const andConditions = orTerm.split('AND').map(andTerm => andTerm.trim());
-                    return andConditions.every(andTerm => {
-                        if (andTerm.startsWith('NOT ')) {
-                            const notTerm = andTerm.substring(4).trim();
-                            const regex = new RegExp(`\\b${escapeRegex(notTerm)}\\b`, caseSensitive ? '' : 'i');
-                            return !regex.test(textContent);
-                        } else {
-                            const regex = new RegExp(escapeRegex(andTerm), caseSensitive ? '' : 'i');
-                            return regex.test(textContent);
-                        }
-                    });
-                });
-            });
-
-            displayMessages();
+            outputDiv.appendChild(messageDiv);
+            return oboe.drop;
+        }).done(function() {
             loadingSpinner.style.display = 'none';
-        }, 0);
-    }
-
-    document.getElementById('searchInput').addEventListener('input', filterMessages);
-    document.getElementById('caseSensitiveCheckbox').addEventListener('change', filterMessages);
-    document.getElementById('startDate').addEventListener('change', filterMessages);
-    document.getElementById('endDate').addEventListener('change', filterMessages);
-
-    function escapeRegex(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
+        });
+    });
 </script>
-
 </body>
 </html>
