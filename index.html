@@ -141,7 +141,7 @@
                 <strong>ID:</strong> ${message.id || 'N/A'} &nbsp;&nbsp;
                 <strong>Date:</strong> ${formattedDate} &nbsp;&nbsp;
                 <strong>Actor:</strong> ${message.actor || message.from || 'N/A'}<br>
-                <pre>${textContent}</pre>`;
+                <pre style="white-space: pre-wrap; word-wrap: break-word;">${textContent}</pre>`;
 
             fragment.appendChild(messageDiv);
         });
