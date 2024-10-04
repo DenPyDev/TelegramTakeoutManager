@@ -52,6 +52,8 @@
 <script>
     let messages = [];
     let filteredMessages = [];
+    let batchSize = 100;  // Количество сообщений в одной партии
+    let currentBatchIndex = 0;  // Текущий индекс партии
 
     document.getElementById('jsonInput').addEventListener('change', function (event) {
         const file = event.target.files[0];
@@ -65,14 +67,16 @@
             oboe(URL.createObjectURL(file))
                 .node('messages.*', function (message) {
                     messages.push(message);
-                    filterMessages();
+                    if (messages.length % batchSize === 0) {
+                        filterMessages();  // Фильтруем и отображаем по партиям
+                    }
                     return oboe.drop;
                 })
                 .done(function () {
                     if (messages.length > 0) {
                         setInitialDateFilters();
                     }
-                    displayMessages();
+                    filterMessages();
                     loadingSpinner.style.display = 'none';
                 })
                 .fail(function () {
@@ -111,8 +115,9 @@
         const outputDiv = document.getElementById('output');
         const messageCountSpan = document.getElementById('messageCount');
         const fragment = document.createDocumentFragment();
+        const batch = filteredMessages.slice(currentBatchIndex, currentBatchIndex + batchSize);
 
-        filteredMessages.forEach((message, index) => {
+        batch.forEach((message, index) => {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'border-bottom pb-2 mb-2';
 
@@ -145,6 +150,15 @@
         outputDiv.innerHTML = '';
         outputDiv.appendChild(fragment);
         messageCountSpan.textContent = filteredMessages.length;
+
+        currentBatchIndex += batchSize;
+        if (currentBatchIndex < filteredMessages.length) {
+            const loadMoreButton = document.createElement('button');
+            loadMoreButton.textContent = 'Load more messages';
+            loadMoreButton.className = 'btn btn-primary mt-4';
+            loadMoreButton.onclick = displayMessages;
+            outputDiv.appendChild(loadMoreButton);
+        }
     }
 
     function filterMessages() {
@@ -199,6 +213,7 @@
             });
         }
 
+        currentBatchIndex = 0;  // Сбрасываем индекс партии
         displayMessages();
     }
 
